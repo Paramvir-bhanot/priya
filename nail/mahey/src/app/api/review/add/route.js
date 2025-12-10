@@ -13,7 +13,7 @@ export async function POST(request) {
     }
 
     // Ensure category is valid
-    if (!['patient', 'acupressure', 'physiotherapy', 'laser'].includes(category)) {
+    if (!['Visitor'].includes(category)) {
       return NextResponse.json({ message: 'Invalid category' }, { status: 400 });
     }
 

@@ -1,403 +1,550 @@
-'use client';
-import { useEffect, useMemo, useState } from 'react';
+'use client';  
+// pages/appointments/book.js
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Button from '@/app/components/UI/Button';
 
-const initialFormState = {
-  patientName: '',
-  patientEmail: '',
-  patientPhone: '',
-  patientGender: '',
-  date: '',
-  time: '',
-  problem: '',
-  address: ''
-};
+// Service types data
+const SERVICE_TYPES = [
+  'Nail Extensions',
+  'Nail Art(simple/advanced)',
+  'Gel Polish',
+  'press-on nails',
+  'gel extensions',
+  'acrylic nail',
+  'gel-x nails',
+  'custom nail art',
+  'manicure',
+  'pedicure',
+  'refill'
+];
 
-const defaultProblems = [];
+// Available time slots
+const TIME_SLOTS = [
+  '09:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
+  '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM',
+  '05:00 PM', '06:00 PM'
+];
 
-export default function BookingForm() {
-  const [formData, setFormData] = useState(initialFormState);
-  const [problems, setProblems] = useState(defaultProblems);
-  const [loading, setLoading] = useState(false);
-  const [servicesError, setServicesError] = useState('');
-  const [isVisible, setIsVisible] = useState(false);
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const [appointmentDetails, setAppointmentDetails] = useState(null);
+const BookAppointment = () => {
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  
+  // Form state
+  const [formData, setFormData] = useState({
+    customerName: '',
+    phoneNumber: '',
+    anotherNumber: '',
+    serviceType: '',
+    appointmentDate: '',
+    appointmentTime: '',
+    notes: ''
+  });
 
-  const isSubmitDisabled = useMemo(() => {
-    return (
-      loading ||
-      !formData.patientName ||
-      !formData.patientEmail ||
-      !formData.patientPhone ||
-      !formData.patientGender ||
-      !formData.date ||
-      !formData.time ||
-      !formData.problem
-    );
-  }, [formData, loading]);
+  // Form errors
+  const [errors, setErrors] = useState({});
 
-  useEffect(() => {
-    let ignore = false;
-
-    const fetchProblems = async () => {
-      try {
-        const response = await fetch('/api/services');
-        if (!response.ok) {
-          throw new Error('Failed to fetch problems');
-        }
-        const data = await response.json();
-        if (!ignore) {
-          const problemsList = (data.treatments ?? []).concat(['Other Problems']);
-          setProblems(problemsList);
-          setServicesError('');
-        }
-      } catch (error) {
-        console.error('Unable to load problems', error);
-        if (!ignore) {
-          setServicesError('Unable to load problems list. Please refresh.');
-        }
-      }
-    };
-
-    fetchProblems();
-    setIsVisible(true);
-    return () => {
-      ignore = true;
-    };
-  }, []);
-
-  const handleFieldChange = (field, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value
-    }));
+  // Get today's date in YYYY-MM-DD format
+  const getTodayDate = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
   };
 
-  const resetForm = () => {
-    setFormData(initialFormState);
+  // Get next available dates (next 30 days)
+  const getAvailableDates = () => {
+    const dates = [];
+    const today = new Date();
+    
+    for (let i = 1; i <= 30; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      
+      // Skip Sundays (day 0) if you want
+      if (date.getDay() !== 0) {
+        dates.push(date.toISOString().split('T')[0]);
+      }
+    }
+    
+    return dates;
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    
+    // Clear error for this field
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!formData.customerName.trim()) {
+      newErrors.customerName = 'Name is required';
+    }
+    
+    if (!formData.phoneNumber.trim()) {
+      newErrors.phoneNumber = 'Phone number is required';
+    } else if (!/^\d{10,11}$/.test(formData.phoneNumber.replace(/\D/g, ''))) {
+      newErrors.phoneNumber = 'Please enter a valid phone number';
+    }
+    
+    if (formData.anotherNumber && !/^\d{10,11}$/.test(formData.anotherNumber.replace(/\D/g, ''))) {
+      newErrors.anotherNumber = 'Please enter a valid phone number';
+    }
+    
+    if (!formData.serviceType) {
+      newErrors.serviceType = 'Please select a service';
+    }
+    
+    if (!formData.appointmentDate) {
+      newErrors.appointmentDate = 'Please select a date';
+    }
+    
+    if (!formData.appointmentTime) {
+      newErrors.appointmentTime = 'Please select a time';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (isSubmitDisabled) return;
-
-    setLoading(true);
+    
+    if (!validateForm()) {
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
     try {
-      const response = await fetch('/api/appointments', {
+      const response = await fetch('/api/appointments/book', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(formData),
       });
-
-      const result = await response.json();
-
-      if (response.ok && result.success) {
-        setAppointmentDetails({
-          appointmentId: result.appointment.appointmentId,
-          patientName: formData.patientName,
-          date: formData.date,
-          time: formData.time,
-          problem: formData.problem
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setIsSuccess(true);
+        // Reset form
+        setFormData({
+          customerName: '',
+          phoneNumber: '',
+          anotherNumber: '',
+          serviceType: '',
+          appointmentDate: '',
+          appointmentTime: '',
+          notes: ''
         });
-        setShowConfirmation(true);
-        resetForm();
+        
+        // Hide success message after 5 seconds
+        setTimeout(() => {
+          setIsSuccess(false);
+        }, 5000);
       } else {
-        alert(result.error || 'Failed to book appointment');
+        setErrors(prev => ({
+          ...prev,
+          submit: data.message || 'Failed to book appointment'
+        }));
       }
     } catch (error) {
-      console.error('Error:', error);
-      alert('An error occurred while booking the appointment');
+      setErrors(prev => ({
+        ...prev,
+        submit: 'Network error. Please try again.'
+      }));
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
-  const closeConfirmation = () => {
-    setShowConfirmation(false);
-    setAppointmentDetails(null);
-  };
+  // Animation effect for form
+  useEffect(() => {
+    const form = document.getElementById('booking-form');
+    if (form) {
+      form.classList.add('animate-fade-in');
+    }
+  }, []);
 
   return (
-    <>
-      <section className={`max-w-4xl mx-auto p-6 space-y-8 pt-22 transition-all duration-500 ${showConfirmation ? 'blur-sm scale-95' : 'blur-0 scale-100'} ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-        {/* Header Section */}
-        <header className="text-center space-y-4">
-          <div className="inline-flex items-center justify-center space-x-2 mb-2">
-            <div className="w-2 h-2 bg-[#7FC8A9] rounded-full animate-pulse"></div>
-            <h2 className="text-3xl md:text-4xl font-bold text-[#1F2937] bg-gradient-to-r from-[#2C7A7B] to-[#3BB273] bg-clip-text text-transparent">
-              Book Your Appointment
-            </h2>
-            <div className="w-2 h-2 bg-[#7FC8A9] rounded-full animate-pulse"></div>
+    <div className="min-h-screen pt-25 bg-gradient-to-b from-[#FBEFF2] to-white py-8 px-4">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-10 animate-slide-down">
+          <div className="inline-block p-3 bg-[#F7DDE2] rounded-full mb-4">
+            <svg 
+              className="w-12 h-12 text-[#0F4C45]" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={1.5} 
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" 
+              />
+            </svg>
           </div>
-          <p className="text-[#6B7280] text-lg max-w-2xl mx-auto leading-relaxed">
-            Complete the form below and we will confirm your appointment via email within seconds.
+          <h1 className="text-4xl font-bold text-[#0A1F1D] mb-3">
+            Book Your Appointment
+          </h1>
+          <p className="text-lg text-[#1A5C52]">
+            Schedule your nail care session with our experts
           </p>
-          {servicesError && (
-            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl animate-shake">
-              <p className="text-red-600 text-sm font-medium">{servicesError}</p>
-            </div>
-          )}
-        </header>
-
-        {/* Form Container */}
-        <div className="bg-white rounded-2xl shadow-lg border border-[#F4F7F8] overflow-hidden">
-          <form onSubmit={handleSubmit} className="space-y-8 p-6 md:p-8">
-            {/* Personal Information Section */}
-            <section className="space-y-6">
-              <div className="flex items-center space-x-3">
-                <div className="w-1.5 h-8 bg-gradient-to-b from-[#2C7A7B] to-[#3BB273] rounded-full"></div>
-                <h3 className="text-xl font-semibold text-[#1F2937]">Personal Information</h3>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-[#6B7280]">Full Name</label>
-                  <input
-                    type="text"
-                    placeholder="Enter your full name"
-                    value={formData.patientName}
-                    onChange={(e) => handleFieldChange('patientName', e.target.value)}
-                    required
-                    className="w-full p-4 border border-[#F4F7F8] rounded-xl bg-[#F4F7F8] focus:bg-white focus:border-[#2C7A7B] focus:ring-2 focus:ring-[#7FC8A9] transition-all duration-300 outline-none"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-[#6B7280]">Email Address</label>
-                  <input
-                    type="email"
-                    placeholder="Enter your email"
-                    value={formData.patientEmail}
-                    onChange={(e) => handleFieldChange('patientEmail', e.target.value)}
-                    required
-                    className="w-full p-4 border border-[#F4F7F8] rounded-xl bg-[#F4F7F8] focus:bg-white focus:border-[#2C7A7B] focus:ring-2 focus:ring-[#7FC8A9] transition-all duration-300 outline-none"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-[#6B7280]">Phone Number</label>
-                  <input
-                    type="tel"
-                    placeholder="Enter your phone number"
-                    value={formData.patientPhone}
-                    onChange={(e) => handleFieldChange('patientPhone', e.target.value)}
-                    required
-                    className="w-full p-4 border border-[#F4F7F8] rounded-xl bg-[#F4F7F8] focus:bg-white focus:border-[#2C7A7B] focus:ring-2 focus:ring-[#7FC8A9] transition-all duration-300 outline-none"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-[#6B7280]">Gender</label>
-                  <select
-                    value={formData.patientGender}
-                    onChange={(e) => handleFieldChange('patientGender', e.target.value)}
-                    required
-                    className="w-full p-4 border border-[#F4F7F8] rounded-xl bg-[#F4F7F8] focus:bg-white focus:border-[#2C7A7B] focus:ring-2 focus:ring-[#7FC8A9] transition-all duration-300 outline-none appearance-none cursor-pointer"
-                  >
-                    <option value="">Select Gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-              </div>
-            </section>
-
-            {/* Divider */}
-            <div className="border-t border-[#F4F7F8]"></div>
-
-            {/* Appointment Details Section */}
-            <section className="space-y-6">
-              <div className="flex items-center space-x-3">
-                <div className="w-1.5 h-8 bg-gradient-to-b from-[#2C7A7B] to-[#3BB273] rounded-full"></div>
-                <h3 className="text-xl font-semibold text-[#1F2937]">Appointment Details</h3>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-[#6B7280]">Preferred Date</label>
-                  <input
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) => handleFieldChange('date', e.target.value)}
-                    required
-                    className="w-full p-4 border border-[#F4F7F8] rounded-xl bg-[#F4F7F8] focus:bg-white focus:border-[#2C7A7B] focus:ring-2 focus:ring-[#7FC8A9] transition-all duration-300 outline-none"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-[#6B7280]">Preferred Time</label>
-                  <input
-                    type="time"
-                    value={formData.time}
-                    onChange={(e) => handleFieldChange('time', e.target.value)}
-                    required
-                    className="w-full p-4 border border-[#F4F7F8] rounded-xl bg-[#F4F7F8] focus:bg-white focus:border-[#2C7A7B] focus:ring-2 focus:ring-[#7FC8A9] transition-all duration-300 outline-none"
-                  />
-                </div>
-                
-                <div className="space-y-2 md:col-span-2">
-                  <label className="text-sm font-medium text-[#6B7280]">Treatment/Problem</label>
-                  <select
-                    value={formData.problem}
-                    onChange={(e) => handleFieldChange('problem', e.target.value)}
-                    required
-                    className="w-full p-4 border border-[#F4F7F8] rounded-xl bg-[#F4F7F8] focus:bg-white focus:border-[#2C7A7B] focus:ring-2 focus:ring-[#7FC8A9] transition-all duration-300 outline-none appearance-none cursor-pointer"
-                  >
-                    <option value="">Select Treatment or Problem</option>
-                    {problems.map((problem) => (
-                      <option key={problem} value={problem}>
-                        {problem}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </section>
-
-            {/* Divider */}
-            <div className="border-t border-[#F4F7F8]"></div>
-
-            {/* Address Section */}
-            <section className="space-y-6">
-              <div className="flex items-center space-x-3">
-                <div className="w-1.5 h-8 bg-gradient-to-b from-[#2C7A7B] to-[#3BB273] rounded-full"></div>
-                <h3 className="text-xl font-semibold text-[#1F2937]">Additional Information</h3>
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-[#6B7280]">
-                  Address <span className="text-[#7FC8A9]">(Optional)</span>
-                </label>
-                <textarea
-                  placeholder="Enter your full address for home visit appointments..."
-                  value={formData.address}
-                  onChange={(e) => handleFieldChange('address', e.target.value)}
-                  className="w-full p-4 border border-[#F4F7F8] rounded-xl bg-[#F4F7F8] focus:bg-white focus:border-[#2C7A7B] focus:ring-2 focus:ring-[#7FC8A9] transition-all duration-300 outline-none min-h-[120px] resize-vertical"
-                />
-              </div>
-            </section>
-
-            {/* Submit Button */}
-            <div className="pt-4">
-              <button
-                type="submit"
-                disabled={isSubmitDisabled}
-                className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] ${
-                  isSubmitDisabled 
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                    : 'bg-gradient-to-r from-[#2C7A7B] to-[#3BB273] text-white hover:shadow-lg hover:shadow-[#2C7A7B]/25'
-                }`}
-              >
-                {loading ? (
-                  <div className="flex items-center justify-center space-x-2">
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Booking Your Appointment...</span>
-                  </div>
-                ) : (
-                  'Book Appointment Now'
-                )}
-              </button>
-              
-              {/* Form Note */}
-              <p className="text-center text-sm text-[#6B7280] mt-4">
-                We respect your privacy and will never share your information with third parties.
-              </p>
-            </div>
-          </form>
         </div>
-      </section>
 
-      {/* Confirmation Popup */}
-      {showConfirmation && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-all duration-300">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-auto transform animate-scale-in">
-            {/* Popup Header */}
-            <div className="relative p-6 text-center border-b border-[#F4F7F8]">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-[#3BB273] to-[#2C7A7B] rounded-full flex items-center justify-center">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+        {/* Success Message */}
+        {isSuccess && (
+          <div className="animate-fade-in mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-center">
+              <svg className="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <div>
+                <h3 className="font-semibold text-green-800">Appointment Booked Successfully!</h3>
+                <p className="text-green-700">We'll contact you soon to confirm your booking.</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Error Message */}
+        {errors.submit && (
+          <div className="animate-shake mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-center">
+              <svg className="w-5 h-5 text-red-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+              <span className="text-red-800">{errors.submit}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Booking Form */}
+        <div 
+          id="booking-form"
+          className="bg-white rounded-2xl shadow-xl overflow-hidden border border-[#F7DDE2]"
+        >
+          <div className="p-8">
+            <form onSubmit={handleSubmit}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Left Column */}
+                <div className="space-y-6">
+                  {/* Customer Name */}
+                  <div className="animate-slide-right" style={{ animationDelay: '100ms' }}>
+                    <label className="block text-sm font-medium text-[#0A1F1D] mb-2">
+                      Full Name *
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        name="customerName"
+                        value={formData.customerName}
+                        onChange={handleChange}
+                        className={`w-full px-4 py-3 rounded-lg border ${
+                          errors.customerName ? 'border-red-300' : 'border-[#F7DDE2]'
+                        } focus:border-[#0F4C45] focus:ring-2 focus:ring-[#0F4C45] focus:ring-opacity-20 transition-all duration-300`}
+                        placeholder="Enter your full name"
+                      />
+                      {errors.customerName && (
+                        <p className="mt-1 text-sm text-red-600 animate-fade-in">{errors.customerName}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Phone Number */}
+                  <div className="animate-slide-right" style={{ animationDelay: '200ms' }}>
+                    <label className="block text-sm font-medium text-[#0A1F1D] mb-2">
+                      Phone Number *
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="tel"
+                        name="phoneNumber"
+                        value={formData.phoneNumber}
+                        onChange={handleChange}
+                        className={`w-full px-4 py-3 rounded-lg border ${
+                          errors.phoneNumber ? 'border-red-300' : 'border-[#F7DDE2]'
+                        } focus:border-[#0F4C45] focus:ring-2 focus:ring-[#0F4C45] focus:ring-opacity-20 transition-all duration-300`}
+                        placeholder="e.g., 555-123-4567"
+                      />
+                      {errors.phoneNumber && (
+                        <p className="mt-1 text-sm text-red-600">{errors.phoneNumber}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Another Number (Optional) */}
+                  <div className="animate-slide-right" style={{ animationDelay: '300ms' }}>
+                    <label className="block text-sm font-medium text-[#0A1F1D] mb-2">
+                      Alternate Phone Number (Optional)
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="tel"
+                        name="anotherNumber"
+                        value={formData.anotherNumber}
+                        onChange={handleChange}
+                        className={`w-full px-4 py-3 rounded-lg border ${
+                          errors.anotherNumber ? 'border-red-300' : 'border-[#F7DDE2]'
+                        } focus:border-[#0F4C45] focus:ring-2 focus:ring-[#0F4C45] focus:ring-opacity-20 transition-all duration-300`}
+                        placeholder="e.g., 555-987-6543"
+                      />
+                      {errors.anotherNumber && (
+                        <p className="mt-1 text-sm text-red-600">{errors.anotherNumber}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Service Type */}
+                  <div className="animate-slide-right" style={{ animationDelay: '400ms' }}>
+                    <label className="block text-sm font-medium text-[#0A1F1D] mb-2">
+                      Service Type *
+                    </label>
+                    <div className="relative">
+                      <select
+                        name="serviceType"
+                        value={formData.serviceType}
+                        onChange={handleChange}
+                        className={`w-full px-4 py-3 rounded-lg border ${
+                          errors.serviceType ? 'border-red-300' : 'border-[#F7DDE2]'
+                        } focus:border-[#0F4C45] focus:ring-2 focus:ring-[#0F4C45] focus:ring-opacity-20 transition-all duration-300 appearance-none bg-white`}
+                      >
+                        <option value="">Select a service</option>
+                        {SERVICE_TYPES.map((service, index) => (
+                          <option key={index} value={service}>
+                            {service}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                        <svg className="w-5 h-5 text-[#0F4C45]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                      {errors.serviceType && (
+                        <p className="mt-1 text-sm text-red-600">{errors.serviceType}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column */}
+                <div className="space-y-6">
+                  {/* Appointment Date */}
+                  <div className="animate-slide-left" style={{ animationDelay: '100ms' }}>
+                    <label className="block text-sm font-medium text-[#0A1F1D] mb-2">
+                      Appointment Date *
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="date"
+                        name="appointmentDate"
+                        value={formData.appointmentDate}
+                        onChange={handleChange}
+                        min={getTodayDate()}
+                        className={`w-full px-4 py-3 rounded-lg border ${
+                          errors.appointmentDate ? 'border-red-300' : 'border-[#F7DDE2]'
+                        } focus:border-[#0F4C45] focus:ring-2 focus:ring-[#0F4C45] focus:ring-opacity-20 transition-all duration-300`}
+                      />
+                      {errors.appointmentDate && (
+                        <p className="mt-1 text-sm text-red-600">{errors.appointmentDate}</p>
+                      )}
+                    </div>
+                    <p className="mt-2 text-sm text-[#1A5C52]">
+                      Available for next 30 days
+                    </p>
+                  </div>
+
+                  {/* Appointment Time */}
+                  <div className="animate-slide-left" style={{ animationDelay: '200ms' }}>
+                    <label className="block text-sm font-medium text-[#0A1F1D] mb-2">
+                      Appointment Time *
+                    </label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {TIME_SLOTS.map((time, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, appointmentTime: time }))}
+                          className={`py-2 px-3 rounded-lg border transition-all duration-300 ${
+                            formData.appointmentTime === time
+                              ? 'bg-[#0F4C45] text-white border-[#0F4C45]'
+                              : 'border-[#F7DDE2] text-[#0A1F1D] hover:border-[#0F4C45] hover:bg-[#F7DDE2]'
+                          }`}
+                        >
+                          {time}
+                        </button>
+                      ))}
+                    </div>
+                    {errors.appointmentTime && (
+                      <p className="mt-1 text-sm text-red-600">{errors.appointmentTime}</p>
+                    )}
+                  </div>
+
+                  {/* Notes */}
+                  <div className="animate-slide-left" style={{ animationDelay: '300ms' }}>
+                    <label className="block text-sm font-medium text-[#0A1F1D] mb-2">
+                      Additional Notes (Optional)
+                    </label>
+                    <textarea
+                      name="notes"
+                      value={formData.notes}
+                      onChange={handleChange}
+                      rows="4"
+                      className="w-full px-4 py-3 rounded-lg border border-[#F7DDE2] focus:border-[#0F4C45] focus:ring-2 focus:ring-[#0F4C45] focus:ring-opacity-20 transition-all duration-300 resize-none"
+                      placeholder="Any special requests or additional information..."
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <div className="mt-10 pt-6 border-t border-[#F7DDE2] animate-slide-up">
+                <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+                  <p className="text-sm text-[#1A5C52]">
+                    * Required fields
+                  </p>
+                  <div className="flex gap-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => router.back()}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="min-w-[150px]"
+                    >
+                      {isSubmitting ? (
+                        <span className="flex items-center justify-center">
+                          <svg className="animate-spin h-5 w-5 mr-3 text-white" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                          </svg>
+                          Booking...
+                        </span>
+                      ) : (
+                        'Book Appointment'
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        {/* Additional Information */}
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-[#FBEFF2] p-6 rounded-xl animate-slide-up" style={{ animationDelay: '100ms' }}>
+            <div className="flex items-center mb-3">
+              <div className="p-2 bg-white rounded-lg mr-3">
+                <svg className="w-6 h-6 text-[#0F4C45]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h3 className="text-2xl font-bold text-[#1F2937] mb-2">
-                Appointment Confirmed!
-              </h3>
-              <p className="text-[#6B7280]">
-                Your appointment has been successfully booked
-              </p>
+              <h3 className="font-semibold text-[#0A1F1D]">Duration</h3>
             </div>
+            <p className="text-[#1A5C52]">
+              Each session typically takes 60-90 minutes depending on the service.
+            </p>
+          </div>
 
-            {/* Appointment Details */}
-            <div className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="space-y-1">
-                  <p className="text-[#6B7280] font-medium">Appointment ID</p>
-                  <p className="text-[#1F2937] font-semibold">{appointmentDetails?.appointmentId}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[#6B7280] font-medium">Patient Name</p>
-                  <p className="text-[#1F2937] font-semibold">{appointmentDetails?.patientName}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[#6B7280] font-medium">Date</p>
-                  <p className="text-[#1F2937] font-semibold">
-                    {appointmentDetails?.date ? new Date(appointmentDetails.date).toLocaleDateString('en-US', {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    }) : ''}
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[#6B7280] font-medium">Time</p>
-                  <p className="text-[#1F2937] font-semibold">
-                    {appointmentDetails?.time ? new Date(`2000-01-01T${appointmentDetails.time}`).toLocaleTimeString('en-US', {
-                      hour: 'numeric',
-                      minute: '2-digit',
-                      hour12: true
-                    }) : ''}
-                  </p>
-                </div>
-                <div className="col-span-2 space-y-1">
-                  <p className="text-[#6B7280] font-medium">Treatment</p>
-                  <p className="text-[#1F2937] font-semibold">{appointmentDetails?.problem}</p>
-                </div>
+          <div className="bg-[#FBEFF2] p-6 rounded-xl animate-slide-up" style={{ animationDelay: '200ms' }}>
+            <div className="flex items-center mb-3">
+              <div className="p-2 bg-white rounded-lg mr-3">
+                <svg className="w-6 h-6 text-[#0F4C45]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
               </div>
+              <h3 className="font-semibold text-[#0A1F1D]">Confirmation</h3>
+            </div>
+            <p className="text-[#1A5C52]">
+              You'll receive a confirmation call within 24 hours of booking.
+            </p>
+          </div>
 
-              {/* Additional Information */}
-              <div className="bg-[#F4F7F8] rounded-xl p-4 mt-4">
-                <div className="flex items-start space-x-3">
-                  <div className="w-5 h-5 text-[#2C7A7B] mt-0.5 flex-shrink-0">
-                    <svg fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div className="text-sm text-[#6B7280]">
-                    <p className="font-medium text-[#2C7A7B]">What's Next?</p>
-                    <p className="mt-1">You will receive a confirmation email with all the details. Please arrive 15 minutes before your scheduled time.</p>
-                  </div>
-                </div>
+          <div className="bg-[#FBEFF2] p-6 rounded-xl animate-slide-up" style={{ animationDelay: '300ms' }}>
+            <div className="flex items-center mb-3">
+              <div className="p-2 bg-white rounded-lg mr-3">
+                <svg className="w-6 h-6 text-[#0F4C45]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
               </div>
+              <h3 className="font-semibold text-[#0A1F1D]">Cancellation</h3>
             </div>
-
-            {/* Popup Actions */}
-            <div className="p-6 border-t border-[#F4F7F8]">
-              <button
-                onClick={closeConfirmation}
-                className="w-full bg-gradient-to-r from-[#2C7A7B] to-[#3BB273] text-white py-3 px-6 rounded-xl font-semibold hover:shadow-lg hover:shadow-[#2C7A7B]/25 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
-              >
-                Got It, Thank You!
-              </button>
-              <p className="text-center text-xs text-[#6B7280] mt-3">
-                Need to make changes? Call us at +91 94174-03743
-              </p>
-            </div>
+            <p className="text-[#1A5C52]">
+              Please notify us at least 24 hours in advance for cancellations.
+            </p>
           </div>
         </div>
-      )}
-    </>
+      </div>
+
+      {/* Add custom animations to global.css or Tailwind config */}
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes slideDown {
+          from { transform: translateY(-20px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes slideRight {
+          from { transform: translateX(-20px); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideLeft {
+          from { transform: translateX(20px); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideUp {
+          from { transform: translateY(20px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+          20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        .animate-fade-in {
+          animation: fadeIn 0.5s ease-out;
+        }
+        .animate-slide-down {
+          animation: slideDown 0.6s ease-out;
+        }
+        .animate-slide-right {
+          animation: slideRight 0.6s ease-out;
+        }
+        .animate-slide-left {
+          animation: slideLeft 0.6s ease-out;
+        }
+        .animate-slide-up {
+          animation: slideUp 0.6s ease-out;
+        }
+        .animate-shake {
+          animation: shake 0.5s ease-in-out;
+        }
+      `}</style>
+    </div>
   );
-}
+};
+
+export default BookAppointment;

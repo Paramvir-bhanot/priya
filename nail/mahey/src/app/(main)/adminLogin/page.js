@@ -44,7 +44,7 @@ export default function AdminLogin() {
       }))
 
       // Redirect to admin dashboard
-      router.push('/doctor')
+      router.push('/admin')
     } catch (err) {
       setError(err.message || 'An error occurred. Please try again.')
     } finally {

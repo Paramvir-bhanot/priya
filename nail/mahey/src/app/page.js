@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { Instagram, Sparkles, Star, ChevronRight, ArrowRight, Palette, Brush, Shield } from 'lucide-react';
 import Image from 'next/image';
-
+import Review from'@/app/components/UI/home/review';
 export default function HomePage() {
   const [activeService, setActiveService] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -57,9 +57,9 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#FBEFF2] to-white">
-      {/* Navigation */}
-      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-white/90 backdrop-blur-md shadow-lg' : 'bg-transparent'}`}>
+    <div className="min-h-screen pt-20 bg-gradient-to-b from-[#FBEFF2] to-white">
+      
+      {isScrolled ? 'bg-white/90 backdrop-blur-md shadow-lg' : ''}
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
@@ -77,7 +77,7 @@ export default function HomePage() {
             </a>
           </div>
         </div>
-      </nav>
+      
 
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-4 relative overflow-hidden">
@@ -249,6 +249,9 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+
+      <Review/>
 
       {/* CTA Section */}
       <section className="py-20 px-4 bg-gradient-to-r from-[#0F4C45] to-[#1A5C52] text-white">

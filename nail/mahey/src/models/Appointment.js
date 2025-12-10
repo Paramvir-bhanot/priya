@@ -1,80 +1,83 @@
 import mongoose from 'mongoose';
 
-const appointmentSchema = new mongoose.Schema({
-  appointmentId: {
+const AppointmentSchema = new mongoose.Schema({
+  customerName: {
     type: String,
-    required: true,
-    unique: true
-  },
-  patientName: {
-    type: String,
-    required: true,
+    required: [true, 'Customer name is required'],
     trim: true
   },
-  patientEmail: {
+  
+  phoneNumber: {
     type: String,
-    required: true,
-    trim: true,
-    lowercase: true
-  },
-  patientPhone: {
-    type: String,
-    required: true,
+    required: [true, 'Phone number is required'],
     trim: true
   },
-  patientGender: {
+  
+  anotherNumber: {
     type: String,
-    enum: ['male', 'female', 'other'],
-    required: true
+    trim: true
   },
-  date: {
+  
+  serviceType: {
+    type: String,
+    required: [true, 'Service type is required'],
+    enum: [
+      'Nail Extensions',
+      'Nail Art(simple/advanced)',
+      'Gel Polish',
+      'press-on nails',
+      'gel extensions',
+      'acrylic nail',
+      'gel-x nails',
+      'custom nail art',
+      'manicure',
+      'pedicure',
+      'refill'
+    ]
+  },
+  
+  appointmentDate: {
     type: Date,
-    required: true
+    required: [true, 'Appointment date is required']
   },
-  time: {
+  
+  appointmentTime: {
     type: String,
-    required: true
+    required: [true, 'Appointment time is required']
   },
-  problem: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  address: {
+  
+  notes: {
     type: String,
     trim: true,
-    default: ''
+    maxlength: [500, 'Notes cannot exceed 500 characters']
   },
-  status: {
+  
+  bookingStatus: {
     type: String,
-    enum: ['pending', 'confirmed', 'cancelled', 'completed'],
+    enum: ['pending', 'confirmed', 'done', 'cancelled'],
     default: 'pending'
   },
+  
   createdAt: {
     type: Date,
     default: Date.now
   },
+  
   updatedAt: {
     type: Date,
     default: Date.now
   }
+}, {
+  timestamps: true // This will automatically update updatedAt
 });
 
 // Update the updatedAt field before saving
-appointmentSchema.pre('save', function(next) {
+AppointmentSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
-  
-  // Generate appointmentId if not provided
-  if (!this.appointmentId) {
-    const timestamp = Date.now().toString(36);
-    const random = Math.random().toString(36).substring(2, 8);
-    this.appointmentId = `APT-${timestamp}-${random}`.toUpperCase();
-  }
-  
   next();
 });
 
-const Appointment = mongoose.models.Appointment || mongoose.model('Appointment', appointmentSchema);
+// Check if the model already exists to prevent recompilation error
+const Appointment = mongoose.models.Appointment || mongoose.model('Appointment', AppointmentSchema);
 
 export default Appointment;
-

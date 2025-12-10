@@ -9,8 +9,7 @@ const reviewSchema = new mongoose.Schema({
   category: {
     type: String,
     required: true,
-    enum: ['patient', 'acupressure', 'physiotherapy', 'laser'],
-    default: 'patient'
+    default: 'Visitor'
   },
   review: {
     type: String,
@@ -31,12 +30,6 @@ const reviewSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   }
-});
-
-// Update the updatedAt field before saving
-reviewSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
-  next();
 });
 
 // Clear model cache in development to ensure schema changes are reflected

@@ -1,4 +1,4 @@
-"use client";
+"use client"; 
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 
@@ -15,7 +15,7 @@ export default function ReviewComponent() {
   const [confirmationType, setConfirmationType] = useState('success');
   const [formData, setFormData] = useState({
     name: '',
-    category: 'patient',
+    category: 'Visitor',
     review: '',
     rating: 5
   });
@@ -78,7 +78,7 @@ export default function ReviewComponent() {
         await fetchReviews();
         setFormData({
           name: '',
-          category: 'patient',
+          category: 'Visitor',
           review: '',
           rating: 5
         });
@@ -106,7 +106,7 @@ export default function ReviewComponent() {
         {[1, 2, 3, 4, 5].map((star) => (
           <svg
             key={star}
-            className={`w-5 h-5 ${star <= rating ? 'text-[#3BB273]' : 'text-gray-300'} 
+            className={`w-5 h-5 ${star <= rating ? 'text-[#0F4C45]' : 'text-[#F7DDE2]'} 
               transition-all duration-300 ${star <= rating ? 'scale-110' : ''}`}
             fill="currentColor"
             viewBox="0 0 20 20"
@@ -114,7 +114,7 @@ export default function ReviewComponent() {
             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
           </svg>
         ))}
-        <span className="ml-2 text-sm font-medium text-gray-600">{rating.toFixed(1)}</span>
+        <span className="ml-2 text-sm font-medium text-[#000000]">{rating.toFixed(1)}</span>
       </div>
     );
   };
@@ -130,7 +130,7 @@ export default function ReviewComponent() {
             className="focus:outline-none"
           >
             <svg
-              className={`w-8 h-8 cursor-pointer transition-all duration-300 ${star <= value ? 'text-[#3BB273] transform scale-110' : 'text-gray-300'} hover:scale-110`}
+              className={`w-8 h-8 cursor-pointer transition-all duration-300 ${star <= value ? 'text-[#0F4C45] transform scale-110' : 'text-[#F7DDE2]'} hover:scale-110`}
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -138,7 +138,7 @@ export default function ReviewComponent() {
             </svg>
           </button>
         ))}
-        <span className="ml-2 text-sm font-medium text-gray-600">{value}.0</span>
+        <span className="ml-2 text-sm font-medium text-[#000000]">{value}.0</span>
       </div>
     );
   };
@@ -148,44 +148,44 @@ export default function ReviewComponent() {
     if (!statistics || statistics.totalReviews === 0) return null;
 
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 mb-12">
+      <div className="bg-white rounded-xl shadow-sm border border-[#F7DDE2] p-8 mb-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Overall Rating */}
           <div className="text-center pt-[15%]">
-            <div className="text-4xl font-bold text-[#2C7A7B] mb-2">{statistics.averageRating}</div>
+            <div className="text-4xl font-bold text-[#0F4C45] mb-2">{statistics.averageRating}</div>
             <div className="flex justify-center mb-2">
               <StarRating rating={statistics.averageRating} />
             </div>
-            <p className="text-gray-600">Based on {statistics.totalReviews} patient review{statistics.totalReviews !== 1 ? 's' : ''}</p>
+            <p className="text-[#000000]">Based on {statistics.totalReviews} patient review{statistics.totalReviews !== 1 ? 's' : ''}</p>
           </div>
 
           {/* Rating Breakdown */}
           <div className="md:col-span-2">
-            <h3 className="text-lg font-semibold text-[#1F2937] mb-4">Patient Satisfaction</h3>
+            <h3 className="text-lg font-semibold text-[#0A1F1D] mb-4">Patient Satisfaction</h3>
             <div className="space-y-3">
               {[5, 4, 3, 2, 1].map((rating) => (
                 <div key={rating} className="flex items-center">
                   <div className="flex items-center w-16">
-                    <span className="text-sm font-medium text-gray-600 mr-1">{rating}</span>
-                    <svg className="w-4 h-4 text-[#3BB273]" fill="currentColor" viewBox="0 0 20 20">
+                    <span className="text-sm font-medium text-[#000000] mr-1">{rating}</span>
+                    <svg className="w-4 h-4 text-[#0F4C45]" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                     </svg>
                   </div>
                   
                   <div className="flex-1 mx-4">
-                    <div className="w-full bg-gray-100 rounded-full h-2">
+                    <div className="w-full bg-[#FBEFF2] rounded-full h-2">
                       <div 
-                        className="bg-gradient-to-r from-[#2C7A7B] to-[#3BB273] h-2 rounded-full transition-all duration-500 ease-out"
+                        className="bg-gradient-to-r from-[#0F4C45] to-[#1A5C52] h-2 rounded-full transition-all duration-500 ease-out"
                         style={{ width: `${statistics.ratingPercentages[rating]}%` }}
                       ></div>
                     </div>
                   </div>
                   
                   <div className="flex items-center w-20 justify-end">
-                    <span className="text-sm font-medium text-gray-600 mr-2">
+                    <span className="text-sm font-medium text-[#000000] mr-2">
                       {statistics.ratingCounts[rating]}
                     </span>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-[#0A1F1D]">
                       ({statistics.ratingPercentages[rating]}%)
                     </span>
                   </div>
@@ -206,13 +206,13 @@ export default function ReviewComponent() {
       <div className="fixed top-4 right-4 z-50 animate-slide-in">
         <div className={`rounded-lg p-4 shadow-lg border-l-4 ${
           confirmationType === 'success' 
-            ? 'bg-[#7FC8A9] bg-opacity-10 border-[#3BB273] text-[#1F2937]' 
+            ? 'bg-[#FBEFF2] border-[#0F4C45] text-[#0A1F1D]' 
             : 'bg-red-50 border-red-500 text-red-700'
         }`}>
           <div className="flex items-start">
             <div className="flex-shrink-0">
               {confirmationType === 'success' ? (
-                <svg className="h-5 w-5 text-[#3BB273]" viewBox="0 0 20 20" fill="currentColor">
+                <svg className="h-5 w-5 text-[#0F4C45]" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
               ) : (
@@ -232,14 +232,14 @@ export default function ReviewComponent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F4F7F8] to-[#7FC8A9] bg-opacity-10">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#2C7A7B]"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#FBEFF2] to-[#F7DDE2]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#0F4C45]"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F4F7F8] py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-[#FBEFF2] to-[#F7DDE2] py-12 px-4 sm:px-6 lg:px-8">
       <Head>
         <title>Patient Reviews | Manjit Health Care</title>
         <meta name="description" content="Read what our patients say about their healing journey with our acupressure, physiotherapy, and laser treatments" />
@@ -250,12 +250,12 @@ export default function ReviewComponent() {
 
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-[#1F2937] mb-4">Patient Stories</h1>
-          <p className="text-lg text-gray-600 mb-8">Real experiences from our healing community</p>
+          <h1 className="text-4xl font-bold text-[#0A1F1D] mb-4">Patient Stories</h1>
+          <p className="text-lg text-[#000000] mb-8">Real experiences from our healing community</p>
           
           <button
             onClick={() => setShowForm(!showForm)}
-            className="bg-gradient-to-r from-[#2C7A7B] to-[#3BB273] hover:from-[#2C7A7B] hover:to-[#2C7A7B] text-white font-medium py-3 px-8 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 flex items-center mx-auto"
+            className="bg-gradient-to-r from-[#0F4C45] to-[#1A5C52] hover:from-[#0A1F1D] hover:to-[#0F4C45] text-white font-medium py-3 px-8 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 flex items-center mx-auto"
           >
             {showForm ? (
               <>
@@ -277,40 +277,41 @@ export default function ReviewComponent() {
 
         {/* Review Form */}
         {showForm && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 mb-12 animate-fade-in">
-            <h2 className="text-2xl font-bold text-[#1F2937] mb-2">Share Your Healing Journey</h2>
-            <p className="text-gray-600 mb-6">Your experience can inspire others on their path to wellness</p>
+          <div className="bg-white rounded-xl shadow-sm border border-[#F7DDE2] p-8 mb-12 animate-fade-in">
+            <h2 className="text-2xl font-bold text-[#0A1F1D] mb-2">Share Your Healing Journey</h2>
+            <p className="text-[#000000] mb-6">Your experience can inspire others on their path to wellness</p>
             <form onSubmit={handleSubmitReview} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
+                  <label className="block text-sm font-medium text-[#000000] mb-2">Your Name</label>
                   <input
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#2C7A7B] focus:border-[#2C7A7B] transition-colors duration-200"
+                    className="w-full px-4 py-3 border border-[#F7DDE2] rounded-lg focus:ring-2 focus:ring-[#0F4C45] focus:border-[#0F4C45] transition-colors duration-200"
                     required
                     placeholder="Enter your name"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">You are a</label>
+                  <label className="block text-sm font-medium text-[#000000] mb-2">You are a</label>
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({...formData, category: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#2C7A7B] focus:border-[#2C7A7B] transition-colors duration-200"
+                    className="w-full px-4 py-3 border border-[#F7DDE2] rounded-lg focus:ring-2 focus:ring-[#0F4C45] focus:border-[#0F4C45] transition-colors duration-200"
                   >
                     <option value="patient">Patient</option>
                     <option value="acupressure">Acupressure Patient</option>
                     <option value="physiotherapy">Physiotherapy Patient</option>
                     <option value="laser">Laser Therapy Patient</option>
+                    <option value="Visitor">Visitor</option>
                   </select>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Treatment Rating</label>
+                <label className="block text-sm font-medium text-[#000000] mb-2">Treatment Rating</label>
                 <RatingInput 
                   value={formData.rating} 
                   onChange={(rating) => setFormData({...formData, rating})} 
@@ -318,12 +319,12 @@ export default function ReviewComponent() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Your Experience</label>
+                <label className="block text-sm font-medium text-[#000000] mb-2">Your Experience</label>
                 <textarea
                   value={formData.review}
                   onChange={(e) => setFormData({...formData, review: e.target.value})}
                   rows="4"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#2C7A7B] focus:border-[#2C7A7B] transition-colors duration-200"
+                  className="w-full px-4 py-3 border border-[#F7DDE2] rounded-lg focus:ring-2 focus:ring-[#0F4C45] focus:border-[#0F4C45] transition-colors duration-200"
                   required
                   placeholder="Tell us about your healing journey..."
                 ></textarea>
@@ -332,7 +333,7 @@ export default function ReviewComponent() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-gradient-to-r from-[#2C7A7B] to-[#3BB273] hover:from-[#2C7A7B] hover:to-[#2C7A7B] text-white font-medium py-3 px-6 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 disabled:opacity-50 flex items-center justify-center"
+                className="w-full bg-gradient-to-r from-[#0F4C45] to-[#1A5C52] hover:from-[#0A1F1D] hover:to-[#0F4C45] text-white font-medium py-3 px-6 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 disabled:opacity-50 flex items-center justify-center"
               >
                 {isSubmitting ? (
                   <>
@@ -356,21 +357,21 @@ export default function ReviewComponent() {
           {displayedReviews.map((review, index) => (
             <div 
               key={review._id} 
-              className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 animate-fade-in flex flex-col"
+              className="bg-white rounded-xl shadow-sm border border-[#F7DDE2] overflow-hidden hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 animate-fade-in flex flex-col"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               <div className="p-6 flex-grow">
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className="text-xl font-semibold text-[#1F2937]">{review.name}</h3>
+                    <h3 className="text-xl font-semibold text-[#0A1F1D]">{review.name}</h3>
                     <span className={`inline-block px-3 py-1 text-xs font-medium rounded-full mt-2 ${
                       review.category === 'acupressure' 
-                        ? 'bg-[#7FC8A9] bg-opacity-20 text-[#2C7A7B]' 
+                        ? 'bg-[#FBEFF2] text-[#0F4C45]' 
                         : review.category === 'physiotherapy'
-                          ? 'bg-[#3BB273] bg-opacity-20 text-[#3BB273]'
+                          ? 'bg-[#F7DDE2] text-[#1A5C52]'
                           : review.category === 'laser'
-                            ? 'bg-[#8A6BF4] bg-opacity-20 text-[#8A6BF4]'
-                            : 'bg-gray-100 text-gray-600'
+                            ? 'bg-[#FBEFF2] text-[#0A1F1D]'
+                            : 'bg-[#F7DDE2] text-[#000000]'
                     }`}>
                       {review.category.charAt(0).toUpperCase() + review.category.slice(1)}
                     </span>
@@ -378,11 +379,11 @@ export default function ReviewComponent() {
                   <StarRating rating={review.rating} />
                 </div>
                 
-                <p className="text-gray-600 mb-6 line-clamp-4 leading-relaxed">{review.review}</p>
+                <p className="text-[#000000] mb-6 line-clamp-4 leading-relaxed">{review.review}</p>
               </div>
               
-              <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
-                <div className="text-sm text-gray-500">
+              <div className="px-6 py-4 bg-[#FBEFF2] border-t border-[#F7DDE2]">
+                <div className="text-sm text-[#0A1F1D]">
                   {new Date(review.createdAt).toLocaleDateString('en-US', { 
                     year: 'numeric', 
                     month: 'long', 
@@ -399,7 +400,7 @@ export default function ReviewComponent() {
           <div className="text-center">
             <button
               onClick={handleLoadMore}
-              className="bg-white text-[#2C7A7B] border border-[#2C7A7B] hover:bg-[#2C7A7B] hover:text-white font-medium py-3 px-8 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 flex items-center mx-auto"
+              className="bg-white text-[#0F4C45] border border-[#0F4C45] hover:bg-[#0F4C45] hover:text-white font-medium py-3 px-8 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 flex items-center mx-auto"
             >
               Read More Stories
               <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -411,21 +412,21 @@ export default function ReviewComponent() {
 
         {!hasMoreReviews && reviews.length > 0 && (
           <div className="text-center py-6">
-            <p className="text-gray-500">Thank you for reading all our patient stories.</p>
+            <p className="text-[#000000]">Thank you for reading all our patient stories.</p>
           </div>
         )}
 
         {reviews.length === 0 && (
-          <div className="text-center py-16 bg-white rounded-xl shadow-sm border border-gray-100">
-            <div className="text-[#7FC8A9] mb-4">
+          <div className="text-center py-16 bg-white rounded-xl shadow-sm border border-[#F7DDE2]">
+            <div className="text-[#0F4C45] mb-4">
               <svg className="mx-auto h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
               </svg>
             </div>
-            <p className="text-gray-500 text-lg mb-4">Be the first to share your healing journey!</p>
+            <p className="text-[#000000] text-lg mb-4">Be the first to share your healing journey!</p>
             <button
               onClick={() => setShowForm(true)}
-              className="bg-gradient-to-r from-[#2C7A7B] to-[#3BB273] hover:from-[#2C7A7B] hover:to-[#2C7A7B] text-white font-medium py-2 px-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-300"
+              className="bg-gradient-to-r from-[#0F4C45] to-[#1A5C52] hover:from-[#0A1F1D] hover:to-[#0F4C45] text-white font-medium py-2 px-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-300"
             >
               Share Your Story
             </button>
@@ -453,15 +454,15 @@ export default function ReviewComponent() {
           animation: slide-in 0.3s ease-out forwards;
         }
         
-        /* Subtle glow for healthcare brand */
-        @keyframes gentle-glow {
-          0% { filter: drop-shadow(0 0 1px rgba(59, 178, 115, 0.3)); }
-          50% { filter: drop-shadow(0 0 3px rgba(59, 178, 115, 0.5)); }
-          100% { filter: drop-shadow(0 0 1px rgba(59, 178, 115, 0.3)); }
+        /* Elegant glow effect */
+        @keyframes premium-glow {
+          0% { filter: drop-shadow(0 0 1px rgba(15, 76, 69, 0.2)); }
+          50% { filter: drop-shadow(0 0 2px rgba(15, 76, 69, 0.4)); }
+          100% { filter: drop-shadow(0 0 1px rgba(15, 76, 69, 0.2)); }
         }
         
-        .text-\\[\\#3BB273\\] {
-          animation: gentle-glow 3s infinite;
+        .text-\\[\\#0F4C45\\] {
+          animation: premium-glow 3s infinite;
         }
         
         .line-clamp-4 {

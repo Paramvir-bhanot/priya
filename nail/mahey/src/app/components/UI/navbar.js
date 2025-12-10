@@ -276,7 +276,7 @@ const Navbar = () => {
               </div>
               
               <Link
-                href="/booking"
+                href="/Appointments"
                 className="flex items-center space-x-2 bg-gradient-to-r from-[#0F4C45] to-[#1A5C52] text-white px-5 py-2.5 rounded-full hover:shadow-lg hover:scale-105 transition-all duration-300 group"
               >
                 <Calendar className="w-4 h-4 group-hover:rotate-12 transition-transform" />
