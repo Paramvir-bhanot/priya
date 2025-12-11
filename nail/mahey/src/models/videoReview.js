@@ -52,9 +52,9 @@ const videoReviewSchema = new mongoose.Schema({
 });
 
 // Update the updatedAt field before saving
-videoReviewSchema.pre('save', function(next) {
+// Use a synchronous pre hook (no `next` callback) so Mongoose handles it correctly
+videoReviewSchema.pre('save', function() {
   this.updatedAt = Date.now();
-  next();
 });
 
 const VideoCourse = mongoose.models.VideoCourse || mongoose.model('VideoCourse', videoReviewSchema);

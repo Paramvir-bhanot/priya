@@ -128,7 +128,7 @@ const BookAppointment = () => {
     setIsSubmitting(true);
     
     try {
-      const response = await fetch('/api/appointments/book', {
+      const response = await fetch('/api/Appointments', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

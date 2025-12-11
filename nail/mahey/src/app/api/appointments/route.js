@@ -1,40 +1,30 @@
-import connectToDatabase from '../../../lib/mongodb';
+import { NextResponse } from 'next/server';
+import connectToDatabase from '@/lib/DBconnection';
 import Appointment from '@/models/Appointment';
 
-
-export default async function handler(req, res) {
-  // Only allow POST requests
-  if (req.method !== 'POST') {
-    return res.status(405).json({ 
-      success: false, 
-      message: 'Method not allowed' 
-    });
+export async function POST(request) {
+  if (request.method && request.method !== 'POST') {
+    return NextResponse.json({ success: false, message: 'Method not allowed' }, { status: 405 });
   }
 
   try {
-    // Connect to the database
     await connectToDatabase();
 
-    // Get data from request body
-    const { 
-      customerName, 
-      phoneNumber, 
-      anotherNumber, 
-      serviceType, 
-      appointmentDate, 
-      appointmentTime, 
-      notes 
-    } = req.body;
+    const body = await request.json();
+    const {
+      customerName,
+      phoneNumber,
+      anotherNumber,
+      serviceType,
+      appointmentDate,
+      appointmentTime,
+      notes
+    } = body;
 
-    // Validate required fields
     if (!customerName || !phoneNumber || !serviceType || !appointmentDate || !appointmentTime) {
-      return res.status(400).json({
-        success: false,
-        message: 'Missing required fields'
-      });
+      return NextResponse.json({ success: false, message: 'Missing required fields' }, { status: 400 });
     }
 
-    // Validate service type
     const validServiceTypes = [
       'Nail Extensions',
       'Nail Art(simple/advanced)',
@@ -48,38 +38,26 @@ export default async function handler(req, res) {
       'pedicure',
       'refill'
     ];
-    
+
     if (!validServiceTypes.includes(serviceType)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid service type'
-      });
+      return NextResponse.json({ success: false, message: 'Invalid service type' }, { status: 400 });
     }
 
-    // Parse the appointment date
     const parsedDate = new Date(appointmentDate);
     if (isNaN(parsedDate.getTime())) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid date format'
-      });
+      return NextResponse.json({ success: false, message: 'Invalid date format' }, { status: 400 });
     }
 
-    // Check if appointment already exists at the same date and time
     const existingAppointment = await Appointment.findOne({
       appointmentDate: parsedDate,
       appointmentTime: appointmentTime,
-      bookingStatus: { $nin: ['cancelled', 'done'] } // Don't check cancelled or done appointments
+      bookingStatus: { $nin: ['cancelled', 'done'] }
     });
 
     if (existingAppointment) {
-      return res.status(409).json({
-        success: false,
-        message: 'Time slot already booked'
-      });
+      return NextResponse.json({ success: false, message: 'Time slot already booked' }, { status: 409 });
     }
 
-    // Create new appointment
     const appointment = new Appointment({
       customerName,
       phoneNumber,
@@ -91,51 +69,38 @@ export default async function handler(req, res) {
       bookingStatus: 'pending'
     });
 
-    // Save to database
     await appointment.save();
 
-    // Return success response
-    return res.status(201).json({
-      success: true,
-      message: 'Appointment booked successfully',
-      data: {
-        id: appointment._id,
-        customerName: appointment.customerName,
-        phoneNumber: appointment.phoneNumber,
-        serviceType: appointment.serviceType,
-        appointmentDate: appointment.appointmentDate,
-        appointmentTime: appointment.appointmentTime,
-        bookingStatus: appointment.bookingStatus,
-        createdAt: appointment.createdAt
-      }
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        message: 'Appointment booked successfully',
+        data: {
+          id: appointment._id,
+          customerName: appointment.customerName,
+          phoneNumber: appointment.phoneNumber,
+          serviceType: appointment.serviceType,
+          appointmentDate: appointment.appointmentDate,
+          appointmentTime: appointment.appointmentTime,
+          bookingStatus: appointment.bookingStatus,
+          createdAt: appointment.createdAt
+        }
+      },
+      { status: 201 }
+    );
 
   } catch (error) {
     console.error('Error booking appointment:', error);
-    
-    // Handle duplicate key errors or validation errors
+
     if (error.name === 'ValidationError') {
       const errors = Object.values(error.errors).map(err => err.message);
-      return res.status(400).json({
-        success: false,
-        message: 'Validation error',
-        errors: errors
-      });
+      return NextResponse.json({ success: false, message: 'Validation error', errors: errors }, { status: 400 });
     }
 
-    // Handle duplicate appointment error
     if (error.code === 11000) {
-      return res.status(409).json({
-        success: false,
-        message: 'Appointment already exists for this time slot'
-      });
+      return NextResponse.json({ success: false, message: 'Appointment already exists for this time slot' }, { status: 409 });
     }
 
-    // Generic server error
-    return res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-      error: error.message
-    });
+    return NextResponse.json({ success: false, message: 'Internal server error', error: error.message }, { status: 500 });
   }
 }

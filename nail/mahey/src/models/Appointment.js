@@ -72,9 +72,9 @@ const AppointmentSchema = new mongoose.Schema({
 });
 
 // Update the updatedAt field before saving
-AppointmentSchema.pre('save', function(next) {
+// Use a synchronous pre hook (no `next` callback) so Mongoose handles it correctly
+AppointmentSchema.pre('save', function() {
   this.updatedAt = Date.now();
-  next();
 });
 
 // Check if the model already exists to prevent recompilation error

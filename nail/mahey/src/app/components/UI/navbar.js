@@ -458,7 +458,7 @@ const Navbar = () => {
               </p>
               
               <Link
-                href="/booking"
+                href="/Appointments"
                 className="flex items-center justify-center space-x-2 bg-gradient-to-r from-[#0F4C45] to-[#1A5C52] text-white py-3 px-4 rounded-lg hover:shadow-lg transition-all duration-300 active:scale-95"
                 onClick={() => setIsOpen(false)}
               >
@@ -567,7 +567,7 @@ const Navbar = () => {
           
           <div className="relative -top-4">
             <Link
-              href="/booking"
+              href="/Appointments"
               className="flex items-center justify-center w-14 h-14 bg-gradient-to-r from-[#0F4C45] to-[#1A5C52] text-white rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300"
               onClick={() => setIsOpen(false)}
             >
