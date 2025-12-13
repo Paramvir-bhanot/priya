@@ -71,11 +71,11 @@ const Navbar = () => {
   ];
 
   const portfolioCategories = [
-    { name: 'Nail Art', href: '/gallery?category=nail-art' },
-    { name: 'Press-on Sets', href: '/gallery?category=presson-sets' },
-    { name: 'Gel Extensions', href: '/gallery?category=gel-extensions' },
-    { name: 'Acrylic Nails', href: '/gallery?category=acrylic-nails' },
-    { name: 'Gel-X Nails', href: '/gallery?category=gelx-nails' },
+     { name: 'Press-on Nails', href: '/services/press-on', icon: '💅' },
+        { name: 'Gel Extensions', href: '/services/gel-extensions', icon: '✨' },
+        { name: 'Acrylic Nails', href: '/services/acrylic', icon: '💎' },
+        { name: 'Gel-X Nails', href: '/services/gel-x', icon: '🌟' },
+        { name: 'Custom Nail Art', href: '/services/nail-art', icon: '🎨' }
   ];
 
   const isActive = (href, exact = false) => {
@@ -386,7 +386,7 @@ const Navbar = () => {
             {/* Mobile Navigation Links */}
             <div className="space-y-1 mb-8">
               {navLinks.map((link) => (
-                <div key={link.name}>
+                <div key={link.name} className="dropdown-container">
                   {link.dropdown ? (
                     <>
                       <button

@@ -1,0 +1,68 @@
+{
+  "services": {
+    "pressOnNails": {
+      "category": "Press-on Nails",
+      "description": "High-quality reusable press-on nails with various designs. Perfect for quick glam without salon visits.",
+      "items": [
+        {
+          "name": "Gel Extensions",
+          "enabled": false,
+          "description": "Semi-permanent gel-based nail extensions for a natural look.",
+          "price": {
+            "startingFrom": 1200,
+            "currency": "INR",
+            "unit": "per set"
+          },
+          "duration": "60-90 mins",
+          "popularInIndia": true,
+          "notes": "Includes shaping, buffing, and gel application."
+        },
+        {
+          "name": "Acrylic Nails",
+          "enabled": true,
+          "description": "Durable acrylic nail enhancements with strong structure.",
+          "price": {
+            "startingFrom": 1500,
+            "currency": "INR",
+            "unit": "full set"
+          },
+          "duration": "90-120 mins",
+          "popularInIndia": true,
+          "notes": "Ideal for long-lasting wear. Includes nail art on request."
+        },
+        {
+          "name": "Gel-X Nails",
+          "enabled": false,
+          "description": "Soft gel extensions that are lightweight and flexible.",
+          "price": {
+            "startingFrom": 1800,
+            "currency": "INR",
+            "unit": "full set"
+          },
+          "duration": "75-105 mins",
+          "popularInIndia": false,
+          "notes": "Gentle on natural nails. Gaining popularity in metro cities."
+        },
+        {
+          "name": "Custom Nail Art",
+          "enabled": false,
+          "description": "Hand-painted or designed nail art on press-ons.",
+          "price": {
+            "startingFrom": 800,
+            "currency": "INR",
+            "unit": "per design (extra)"
+          },
+          "duration": "30-60 mins",
+          "popularInIndia": true,
+          "notes": "Popular for weddings and festivals. Prices vary with complexity."
+        }
+      ],
+      "additionalInfo": {
+        "homeServiceAvailable": true,
+        "cityPopularity": [ "jalandhar", "ludhiana", "hosiarpur to gharshankar", "banga","mahilpur" ],
+        "festivalDemand": ["Diwali", "Weddings", "Karva Chauth"],
+        "bookingNote": "Advance booking recommended during festive seasons."
+      }
+    }
+  }
+}
